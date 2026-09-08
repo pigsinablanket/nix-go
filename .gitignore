@@ -1,0 +1,23 @@
+# Nix build result symlinks
+result
+result-*
+
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# macOS
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# NOTE: vendor/ is intentionally tracked — the flake builds with
+# `src = ./.` and `vendorHash = null`, so Go deps must come from the repo.

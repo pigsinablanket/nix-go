@@ -1,0 +1,7 @@
+go 1.22
+
+use (
+	./golang/apps/service1
+	./golang/apps/service2
+	./golang/pkg/example
+)
