@@ -41,12 +41,14 @@
             };
           };
 
-          dockerImage = pname: pkg: pkgs.dockerTools.buildLayeredImage {
+          dockerImage = pname: port: pkg: pkgs.dockerTools.buildLayeredImage {
             name = "testpoc/${pname}";
             tag = version;
             contents = [ pkg ];
             config = {
               Cmd = [ "${pkg}/bin/${pname}" ];
+              Env = [ "PORT=${toString port}" ];
+              ExposedPorts = { "${toString port}/tcp" = { }; };
             };
             meta.description = "Docker image for test poc ${pname}";
           };
@@ -64,8 +66,8 @@
             };
 
             dockerImages = {
-              service1 = dockerImage "service1" config.packages.service1;
-              service2 = dockerImage "service2" config.packages.service2;
+              service1 = dockerImage "service1" 8080 config.packages.service1;
+              service2 = dockerImage "service2" 8081 config.packages.service2;
             };
 
             # buildGoModule runs `go test` in its check phase, so `nix flake check`

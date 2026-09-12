@@ -1,21 +1,100 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"encoding/json"
+	"errors"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"github.com/pkg/errors"
+	"github.com/go-chi/chi/v5"
+	chimw "github.com/go-chi/chi/v5/middleware"
+	pkgerrors "github.com/pkg/errors"
 )
 
+const defaultPort = "8081"
+
+type greetResponse struct {
+	Service   string `json:"service"`
+	Message   string `json:"message"`
+	RequestID string `json:"request_id"`
+}
+
 func main() {
-	fmt.Println("Hello from service2")
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: newRouter(),
+	}
+
+	go func() {
+		slog.Info("service2 listening", "addr", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("server failed", "error", err)
+			stop()
+		}
+	}()
+
+	<-ctx.Done()
+	slog.Info("shutting down")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		slog.Error("graceful shutdown failed", "error", err)
+		os.Exit(1)
+	}
+}
+
+func newRouter() *chi.Mux {
+	r := chi.NewRouter()
+	r.Use(chimw.RequestID)
+	r.Use(chimw.Recoverer)
+
+	r.Get("/healthz", handleHealthz)
+	r.Get("/api/v1/greet", handleGreet)
+	return r
+}
+
+func handleHealthz(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func handleGreet(w http.ResponseWriter, r *http.Request) {
 	msg, err := greet()
 	if err != nil {
-		fmt.Println(errors.Wrap(err, "greeting failed"))
+		slog.Error("greeting failed", "error", err)
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": pkgerrors.Wrap(err, "greeting failed").Error(),
+		})
 		return
 	}
-	fmt.Println(msg)
+	writeJSON(w, http.StatusOK, greetResponse{
+		Service:   "service2",
+		Message:   msg,
+		RequestID: chimw.GetReqID(r.Context()),
+	})
 }
 
 func greet() (string, error) {
 	return "Powered by pkg/errors", nil
+}
+
+func writeJSON(w http.ResponseWriter, status int, v any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(v)
 }

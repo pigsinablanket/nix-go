@@ -1,6 +1,10 @@
 ## workspace
 # github.com/example/pkg v0.0.0 => ./golang/pkg/example
 ## explicit; go 1.22
+# github.com/go-chi/chi/v5 v5.3.2
+## explicit; go 1.23
+github.com/go-chi/chi/v5
+github.com/go-chi/chi/v5/middleware
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
