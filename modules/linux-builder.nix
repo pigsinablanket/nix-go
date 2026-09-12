@@ -30,7 +30,6 @@
         services.k3s = {
           enable = true;
           role = "server";                 # default; standalone w/ embedded sqlite
-          extraFlags = [ "--tls-san=127.0.0.1" ];  # so TLS works via tunnel
         };
       };
     };

@@ -1,0 +1,15 @@
+{
+  "name": "testpoc",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "yarn workspace @testpoc/web dev",
+    "build": "yarn workspace @testpoc/web build",
+    "typecheck": "yarn workspace @testpoc/web typecheck",
+    "preview": "yarn workspace @testpoc/web preview"
+  },
+  "packageManager": "yarn@4.14.1"
+}
