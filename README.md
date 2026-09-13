@@ -10,7 +10,7 @@ Lix is a drop-in replacement for the Nix package manager. We use its installer b
 curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ```
 
-Verify with `nix --version` — it should print `nix (Lix, like Nix) ...`.
+Verify with `nix --version` — it should print `nix (Nix) ...`.
 
 ## 2. Set up your Mac with a system flake
 
@@ -63,7 +63,7 @@ sudo darwin-rebuild switch
 
 ## 3. Linux builds on Apple Silicon
 
-The `linux-builder` module imported in step 2 (from this repo's `modules/linux-builder.nix`) sets up a local Linux builder VM (Virtualization.framework + Rosetta) so `x86_64-linux` and `aarch64-linux` builds run on your Mac.
+The `linux-builder` module imported in step 2 (from this repo's `nix/darwin/linux-builder.nix`) sets up a local Linux builder VM (Virtualization.framework + Rosetta) so `x86_64-linux` and `aarch64-linux` builds run on your Mac.
 
 After step 2, the VM starts automatically at boot and registers itself as a Nix builder — Linux-target builds are dispatched to it with no extra setup:
 
