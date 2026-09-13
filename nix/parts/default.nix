@@ -49,14 +49,25 @@
         };
 
         # `nix run .#service1` / `nix run .#service2`
+        #
+        # Each app wraps the service binary in a shell script that exports
+        # env vars before exec-ing it, forwarding extra arguments (`nix run
+        # .#service1 -- --greeting hi`). Ports are deliberately not the
+        # services' built-in defaults so the env var's effect is visible.
         apps = {
           service1 = {
             type = "app";
-            program = "${config.packages.service1}/bin/service1";
+            program = "${pkgs.writeShellScriptBin "service1" ''
+              export PORT=9090
+              exec ${config.packages.service1}/bin/service1 "$@"
+            ''}/bin/service1";
           };
           service2 = {
             type = "app";
-            program = "${config.packages.service2}/bin/service2";
+            program = "${pkgs.writeShellScriptBin "service2" ''
+              export PORT=9091
+              exec ${config.packages.service2}/bin/service2 "$@"
+            ''}/bin/service2";
           };
         };
 

@@ -33,6 +33,7 @@ Create `/etc/nix-darwin/flake.nix`:
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
+    # References the projects repo to be able to include the system configuration
     nix-go.url = "github:pigsinablanket/nix-go";
   };
 
@@ -43,6 +44,7 @@ Create `/etc/nix-darwin/flake.nix`:
       system = "aarch64-darwin"; # Apple Silicon
       modules = [
         nix-go.darwinModules.linux-builder
+        ({ system, ... }: { system.stateVersion = 7; })
       ];
     };
   };
@@ -72,4 +74,20 @@ nix build .#service1 --system x86_64-linux
 nix build .#dockerImages.aarch64-darwin.service1
 ```
 
-VM: 4 cores / 8 GiB RAM / 40 GiB disk, Rosetta enabled, standalone k3s.
+VM: 4 cores / 8 GiB RAM / 40 GiB disk, Rosetta enabled (for x86 cross compilling), standalone k3s.
+
+## 4. Env vars and parameters via `nix run`
+
+The `apps` flake output wraps each service binary in a small shell script that exports env vars before `exec`-ing the real binary, forwarding any extra arguments. `PORT` is set to a non-default value so you can see the env var take effect:
+
+```bash
+# Env var from the wrapper: service1 listens on 9090, not its built-in 8080
+nix run .#service1
+curl -s localhost:9090/api/v1/greeting
+# => {"service":"service1","greeting":"Hello from example package",...}
+
+# Parameters after `--` are passed through to the binary
+nix run .#service1 -- --greeting "hi from nix"
+curl -s localhost:9090/api/v1/greeting
+# => {"service":"service1","greeting":"hi from nix",...}
+```

@@ -3,6 +3,9 @@ result
 result-*
 
 # Go build artifacts
+# Compiled service binaries (local dev builds)
+/golang/apps/service1/service1
+/golang/apps/service2/service2
 *.exe
 *.exe~
 *.dll

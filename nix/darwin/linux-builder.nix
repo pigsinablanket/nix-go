@@ -20,7 +20,10 @@
       enable = true;
       package = pkgs.darwin.linux-builder-vz;        # Virtualization.framework + Rosetta
       systems = [ "aarch64-linux" "x86_64-linux" ];  # both arches from one VM
-      config.virtualisation.vz.rosetta.enable = true;
+      config.virtualisation.vz.rosetta = {
+        enable = true;
+        eulaAccepted = true;
+      };
       maxJobs = 4;
       config = {
         # k3s needs more than the builder defaults (1 core / 3 GiB / 20 GiB)

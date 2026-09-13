@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
 	"log/slog"
 	"net/http"
 	"os"
@@ -19,6 +20,8 @@ import (
 
 const defaultPort = "8080"
 
+var greetingFlag = flag.String("greeting", "", "greeting to return (default: built-in)")
+
 type greetingResponse struct {
 	Service   string `json:"service"`
 	Greeting  string `json:"greeting"`
@@ -26,6 +29,8 @@ type greetingResponse struct {
 }
 
 func main() {
+	flag.Parse()
+
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 
 	port := os.Getenv("PORT")
@@ -75,9 +80,13 @@ func handleHealthz(w http.ResponseWriter, _ *http.Request) {
 }
 
 func handleGreeting(w http.ResponseWriter, r *http.Request) {
+	greeting := example.Greeting()
+	if *greetingFlag != "" {
+		greeting = *greetingFlag
+	}
 	writeJSON(w, http.StatusOK, greetingResponse{
 		Service:   "service1",
-		Greeting:  example.Greeting(),
+		Greeting:  greeting,
 		RequestID: chimw.GetReqID(r.Context()),
 	})
 }
